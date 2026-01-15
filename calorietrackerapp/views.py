@@ -184,3 +184,49 @@ def delete_food(request, food_id):
     
     messages.success(request, f'Deleted "{food_name}" successfully!')
     return redirect('calorie_tracker:index')
+
+
+@require_http_methods(["POST"])
+def reset_day(request):
+    """
+    Handle resetting all food items for today (soft delete).
+    
+        
+    Returns:
+        Redirect to index
+    """
+    today = date.today()
+    count = FoodItem.objects.filter(
+        date_added=today,
+        is_deleted=False
+    ).update(is_deleted=True)
+    
+    messages.success(request, f'Reset today\'s calorie count ({count} items removed)!')
+    return redirect('calorie_tracker:index')
+
+def history(request):
+    """
+    Display historical calorie data for the last 30 days.
+    
+  
+        
+    Returns:
+        Rendered history.html with past data
+    """
+    today = date.today()
+    
+    history_data = []
+    for i in range(30, -1, -1):
+        day = today - timedelta(days=i)
+        daily_total = FoodItem.objects.filter(
+            date_added=day,
+            is_deleted=False
+        ).aggregate(total=Sum('calories'))['total'] or 0
+        
+        history_data.append({
+            'date': day,
+            'total': daily_total,
+            'day_name': day.strftime('%A'),
+            'date_formatted': day.strftime('%B %d, %Y'),
+        })
+
