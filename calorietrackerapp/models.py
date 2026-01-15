@@ -54,3 +54,7 @@ class FoodItem(models.Model):
     def __str__(self):
         """String representation of the food item."""
         return f"{self.name} ({self.calories} kcal)"
+    
+    def is_todays_item(self):
+        """Check if this item was added today."""
+        return self.date_added == date.today()
