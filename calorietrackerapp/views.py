@@ -3,6 +3,8 @@ from django.contrib import messages
 from django.db.models import Sum
 from datetime import date, timedelta
 from .models import FoodItem
+from django.shortcuts import render, redirect
+from django.views.decorators.http import require_http_methods
 
 # Create your views here.
 def index(request):
@@ -48,4 +50,61 @@ def index(request):
     }
     
     return render(request, 'index.html', context)
+
+@require_http_methods(["GET", "POST"])
+def add_food(request):
+    """
+    Handle adding a new food item.
+    
+    GET: Display the form to add a food item
+    POST: Process the form and create a new food item
+    
+        
+    Returns:
+        GET: Rendered add_food.html form
+        POST: Redirect to index on success
+    """
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        calories = request.POST.get('calories', '').strip()
+        
+        # Validation
+        errors = []
+        
+        if not name:
+            errors.append('Food name is required.')
+        elif len(name) > 200:
+            errors.append('Food name must be less than 200 characters.')
+        
+        if not calories:
+            errors.append('Calories are required.')
+        else:
+            try:
+                calories = int(calories)
+                if calories < 0:
+                    errors.append('Calories must be a positive number.')
+                elif calories > 999999:
+                    errors.append('Calories value is too large.')
+            except ValueError:
+                errors.append('Calories must be a valid number.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'add_food.html', {
+                'name': name,
+                'calories': calories if isinstance(calories, int) else '',
+            })
+        
+        # Create new food item
+        FoodItem.objects.create(
+            name=name,
+            calories=int(calories),
+            date_added=date.today()
+        )
+        
+        messages.success(request, f'Added "{name}" ({calories} kcal) successfully!')
+        return redirect('calorie_tracker:index')
+    
+    return render(request, 'add_food.html')
 
