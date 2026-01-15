@@ -171,10 +171,6 @@ def edit_food(request, food_id):
 def delete_food(request, food_id):
     """
     Handle deleting a food item (soft delete).
-    
-    Args:
-        request: HttpRequest object
-        food_id: ID of the food item to delete
         
     Returns:
         Redirect to index
