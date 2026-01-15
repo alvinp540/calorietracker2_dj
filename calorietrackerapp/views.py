@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from datetime import date, timedelta
 from .models import FoodItem
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 # Create your views here.
@@ -107,4 +107,63 @@ def add_food(request):
         return redirect('calorie_tracker:index')
     
     return render(request, 'add_food.html')
+
+
+@require_http_methods(["GET", "POST"])
+def edit_food(request, food_id):
+    """
+    Handle editing an existing food item.
+    
+    GET: Display the form with current values
+    POST: Process the form and update the food item
+   
+    Returns:
+        GET: Rendered edit_food.html form
+        POST: Redirect to index on success
+    """
+    food = get_object_or_404(FoodItem, id=food_id, is_deleted=False)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        calories = request.POST.get('calories', '').strip()
+        
+        # Validation
+        errors = []
+        
+        if not name:
+            errors.append('Food name is required.')
+        elif len(name) > 200:
+            errors.append('Food name must be less than 200 characters.')
+        
+        if not calories:
+            errors.append('Calories are required.')
+        else:
+            try:
+                calories = int(calories)
+                if calories < 0:
+                    errors.append('Calories must be a positive number.')
+                elif calories > 999999:
+                    errors.append('Calories value is too large.')
+            except ValueError:
+                errors.append('Calories must be a valid number.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'edit_food.html', {
+                'food': food,
+                'name': name,
+                'calories': calories if isinstance(calories, int) else '',
+            })
+        
+        # Update food item
+        old_name = food.name
+        food.name = name
+        food.calories = int(calories)
+        food.save()
+        
+        messages.success(request, f'Updated "{old_name}" to "{name}" ({calories} kcal)!')
+        return redirect('calorie_tracker:index')
+    
+    return render(request, 'edit_food.html', {'food': food})
 
