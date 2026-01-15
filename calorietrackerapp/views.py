@@ -167,3 +167,24 @@ def edit_food(request, food_id):
     
     return render(request, 'edit_food.html', {'food': food})
 
+@require_http_methods(["POST"])
+def delete_food(request, food_id):
+    """
+    Handle deleting a food item (soft delete).
+    
+    Args:
+        request: HttpRequest object
+        food_id: ID of the food item to delete
+        
+    Returns:
+        Redirect to index
+    """
+    food = get_object_or_404(FoodItem, id=food_id, is_deleted=False)
+    food_name = food.name
+    
+    # Soft delete
+    food.is_deleted = True
+    food.save()
+    
+    messages.success(request, f'Deleted "{food_name}" successfully!')
+    return redirect('calorie_tracker:index')
