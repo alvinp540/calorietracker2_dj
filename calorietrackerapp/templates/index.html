@@ -20,6 +20,38 @@
     
  
 </div>
+<!-- Quick Actions Card -->
+<div class="bg-white rounded-lg shadow-md p-6">
+    <h3 class="text-gray-600 text-sm font-medium mb-4">
+        Quick Actions
+    </h3>
+
+    <!-- Add Food -->
+    <a href="{% url 'calorie_tracker:add_food' %}"
+       class="inline-flex items-center justify-center w-full px-4 py-2 mb-3
+              text-sm font-medium text-white bg-blue-600 rounded-md
+              hover:bg-blue-700 focus:outline-none focus:ring-2
+              focus:ring-blue-400 transition">
+        Add Food
+    </a>
+
+    {% if item_count > 0 %}
+    <!-- Reset Day -->
+    <form method="post"
+          action="{% url 'calorie_tracker:reset_day' %}"
+          onsubmit="return confirm('Are you sure you want to reset today’s calorie count?');">
+        {% csrf_token %}
+        <button type="submit"
+                class="inline-flex items-center justify-center w-full px-4 py-2
+                       text-sm font-medium text-white bg-red-600 rounded-md
+                       hover:bg-red-700 focus:outline-none focus:ring-2
+                       focus:ring-red-400 transition">
+            Reset Day
+        </button>
+    </form>
+    {% endif %}
+</div>
+
 
 <!-- Food Items Section -->
 <div class="card p-6 mb-8">

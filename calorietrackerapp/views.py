@@ -204,29 +204,4 @@ def reset_day(request):
     messages.success(request, f'Reset today\'s calorie count ({count} items removed)!')
     return redirect('calorie_tracker:index')
 
-def history(request):
-    """
-    Display historical calorie data for the last 30 days.
-    
-  
-        
-    Returns:
-        Rendered history.html with past data
-    """
-    today = date.today()
-    
-    history_data = []
-    for i in range(30, -1, -1):
-        day = today - timedelta(days=i)
-        daily_total = FoodItem.objects.filter(
-            date_added=day,
-            is_deleted=False
-        ).aggregate(total=Sum('calories'))['total'] or 0
-        
-        history_data.append({
-            'date': day,
-            'total': daily_total,
-            'day_name': day.strftime('%A'),
-            'date_formatted': day.strftime('%B %d, %Y'),
-        })
 
